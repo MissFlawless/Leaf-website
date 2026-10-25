@@ -1,5 +1,9 @@
 from pathlib import Path
 from flask import Flask, jsonify, send_from_directory
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
+
 from app.config import Config
 from app.extensions import cors, db, jwt, migrate
 from app.models import User
@@ -52,8 +56,20 @@ def create_app(config_object=Config):
     from app.routes.notebooks import bp as notebooks_bp
     from app.routes.dashboard import bp as dashboard_bp
     from app.routes.notifications import bp as notifications_bp
+    from app.routes.recommendations import bp as recommendations_bp
 
-    for bp in [auth_bp, meta_bp, stories_bp, chapters_bp, comments_bp, library_bp, notebooks_bp, dashboard_bp, notifications_bp]:
+    for bp in [auth_bp, meta_bp, stories_bp, chapters_bp, comments_bp, library_bp, notebooks_bp, dashboard_bp, notifications_bp, recommendations_bp]:
         app.register_blueprint(bp, url_prefix="/api")
+
+    from app.recommendations import initialize_recommendations
+    if not app.config.get("TESTING"):
+        initialize_recommendations(app)
+
+    @app.cli.command("reindex_recommendations")
+    def reindex_recommendations():
+        """Rebuild persisted vectors and the in-memory recommendation index."""
+        from app.recommendations import RecommendationService
+        app.extensions["recommendations"] = RecommendationService()
+        print("Recommendation index rebuilt.")
 
     return app

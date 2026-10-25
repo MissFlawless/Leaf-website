@@ -8,6 +8,18 @@ from app.utils.security import author_required
 from app.utils.serializers import chapter_json, story_card
 from app.utils.uploads import delete_image, save_image
 
+
+def sync_recommendations(story_id):
+    """Recommendation problems must never prevent a story mutation from succeeding."""
+    try:
+        from flask import current_app
+        service = current_app.extensions.get("recommendations")
+        if service:
+            service.sync_story(story_id)
+    except Exception:
+        # The service logs its own failures; never include story text or secrets here.
+        pass
+
 bp = Blueprint("stories", __name__)
 VALID_STATUSES = {"draft", "published", "completed"}
 
@@ -108,6 +120,7 @@ def create_story():
         return jsonify(error=error), 400
     db.session.add(story)
     db.session.commit()
+    sync_recommendations(story.id)
     return jsonify(story=story_card(story)), 201
 
 
@@ -121,6 +134,7 @@ def update_story(story_id):
     if error:
         return jsonify(error=error), 400
     db.session.commit()
+    sync_recommendations(story.id)
     return jsonify(story=story_card(story))
 
 
@@ -133,6 +147,7 @@ def delete_story(story_id):
     delete_image(story.cover)
     db.session.delete(story)
     db.session.commit()
+    sync_recommendations(story_id)
     return jsonify(message="Story deleted.")
 
 

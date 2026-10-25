@@ -83,6 +83,16 @@ class Story(TimestampMixin, db.Model):
     shelf_entries = db.relationship("ShelfEntry", back_populates="story", cascade="all, delete-orphan")
 
 
+class StoryEmbedding(db.Model):
+    """Persisted float32 recommendation vectors for published stories."""
+    __tablename__ = "story_embeddings"
+    story_id = db.Column(db.Integer, db.ForeignKey("stories.id", ondelete="CASCADE"), primary_key=True)
+    model_name = db.Column(db.Text, nullable=False)
+    content_hash = db.Column(db.Text, nullable=False)
+    embedding = db.Column(db.LargeBinary, nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class Chapter(TimestampMixin, db.Model):
     __tablename__ = "chapters"
     id = db.Column(db.Integer, primary_key=True)

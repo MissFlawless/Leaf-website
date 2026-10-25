@@ -7,6 +7,16 @@ from app.extensions import db
 from app.models import Chapter, ShelfEntry, Story, WritingLog
 from app.utils.security import author_required
 from app.utils.serializers import chapter_json
+
+
+def sync_recommendations(story_id):
+    try:
+        from flask import current_app
+        service = current_app.extensions.get("recommendations")
+        if service:
+            service.sync_story(story_id)
+    except Exception:
+        pass
 from app.utils.notifications import notify_story_followers
 
 bp = Blueprint("chapters", __name__)
@@ -75,6 +85,7 @@ def create_chapter(story_id):
     add_writing_log(current_user.id, wc)
     db.session.add(chapter)
     db.session.commit()
+    sync_recommendations(story.id)
     return jsonify(chapter=chapter_json(chapter)), 201
 
 
@@ -131,6 +142,7 @@ def update_chapter(chapter_id):
     if chapter.status == "published" and (not was_published or had_edit):
         notify_story_followers(chapter.story, chapter, "updated" if was_published else "published")
     db.session.commit()
+    sync_recommendations(chapter.story_id)
     return jsonify(chapter=chapter_json(chapter))
 
 
@@ -146,6 +158,7 @@ def delete_chapter(chapter_id):
     for i, c in enumerate(story.chapters, 1):
         c.position = i
     db.session.commit()
+    sync_recommendations(story.id)
     return jsonify(message="Chapter deleted.")
 
 
