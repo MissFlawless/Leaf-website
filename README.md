@@ -1,5 +1,29 @@
 ﻿# Leaf
 
+## Optional Gemini why-lines
+
+The recommendation agent can generate its short recommendation “why” line through
+Gemini's OpenAI-compatible endpoint. Copy `.env.example` to a local `.env` (it is
+ignored by Git) and set `RECOMMENDATION_LLM_MODEL` plus
+`RECOMMENDATION_LLM_API_KEY`. Leave `RECOMMENDATION_LOCAL_LLM_ENABLED=false` to
+fall back directly to the built-in template if the API cannot be used.
+
+Create a free-tier key in [Google AI Studio](https://aistudio.google.com/docs/get-started):
+open the API Keys page, choose **Create API key**, then put the new key only in
+`.env`. Do not paste keys into issues, chats, or source files. New keys may be
+authorization keys; follow Google's [key-management guidance](https://ai.google.dev/gemini-api/docs/api-key)
+for restrictions and revocation.
+
+The available variables are `RECOMMENDATION_LLM_PROVIDER` (use
+`openai_compatible`), `RECOMMENDATION_LLM_BASE_URL`,
+`RECOMMENDATION_LLM_MODEL`, `RECOMMENDATION_LLM_API_KEY`, and
+`RECOMMENDATION_LOCAL_LLM_ENABLED`. Real environment variables take precedence
+over `.env` values.
+
+Run `python -m recommendation_agent.check_llm` after configuring it. With no
+model selected it lists up to 15 available models; with a model selected it makes
+one small public-data request and reports the source, latency, and validated line.
+
 ## Run the project in VS Code terminal
 
 This project is set up to run locally without installing PostgreSQL on Windows. Use SQLite for local development.
