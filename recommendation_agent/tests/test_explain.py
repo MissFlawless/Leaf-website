@@ -2,6 +2,7 @@ import json
 import httpx
 import logging
 import os
+import builtins
 from recommendation_agent.explain import WhyLineGenerator, valid_why
 from recommendation_agent.explain import ApiProvider
 from recommendation_agent.models import Story
@@ -86,3 +87,18 @@ def test_check_llm_reports_missing_key_cleanly(monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "API key: not present" in output
     assert "API key is missing." in output
+
+
+def test_missing_httpx_falls_back_without_raising(monkeypatch):
+    original_import = builtins.__import__
+
+    def without_httpx(name, *args, **kwargs):
+        if name == "httpx":
+            raise ImportError("httpx unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", without_httpx)
+    provider = ApiProvider("openai_compatible", "gemini-test", api_key="secret")
+    generator = WhyLineGenerator(api_provider=provider, local_enabled=False)
+    assert generator.generate_with_source("query", 1, "hash", "public", "template") == ("template", "template")
+    assert provider.last_error == "http_client_unavailable"

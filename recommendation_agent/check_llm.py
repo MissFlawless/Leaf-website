@@ -28,6 +28,7 @@ def _error_message(error: str | None) -> str:
         "quota_reached": "Quota reached (429).",
         "timeout": "The request timed out.",
         "network_error": "A network error occurred.",
+        "http_client_unavailable": "httpx is not installed; run: python -m pip install -r recommendation_agent/requirements.txt",
     }.get(error or "", "The API request did not succeed.")
 
 

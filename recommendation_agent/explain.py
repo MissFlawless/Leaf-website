@@ -66,6 +66,10 @@ class ApiProvider:
             return None
         try:
             import httpx
+        except ImportError:
+            self.last_error = "http_client_unavailable"
+            return None
+        try:
             client = self.client or httpx.Client(timeout=5.0)
             if self.provider == "openai_compatible":
                 return self._openai_compatible(prompt, api_key)
