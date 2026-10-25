@@ -1,0 +1,1695 @@
+import { useState, useRef, useEffect } from "react";
+import {
+  Feather,
+  BookOpen,
+  Sparkles,
+  Users,
+  Search,
+  Bell,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Star,
+  Play,
+  Plus,
+  Home,
+  Compass,
+  GraduationCap,
+  User,
+  Settings,
+  Bold,
+  Italic,
+  AlignLeft,
+  Quote,
+  RotateCcw,
+  Save,
+  Wand2,
+  ChevronDown,
+  ChevronUp,
+  Move,
+  ZoomIn,
+  ZoomOut,
+  Link,
+  MapPin,
+  Pencil,
+  Eye,
+  ArrowRight,
+  Globe,
+  Lock,
+  Crown,
+  Edit3,
+  Check,
+  X,
+  ThumbsUp,
+  Clock,
+  TrendingUp,
+  Filter,
+  MoreHorizontal,
+  Layers,
+  GitBranch,
+  Video,
+  CheckCircle,
+  Menu,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+type Page =
+  | "landing"
+  | "signin"
+  | "signup"
+  | "dashboard"
+  | "editor"
+  | "builder"
+  | "explore"
+  | "courses"
+  | "profile"
+  | "collab";
+
+// ─── Leaf SVG Icon ────────────────────────────────────────────────────────────
+function LeafIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      className={className}
+    >
+      <path
+        d="M16 28C16 28 6 22 6 12C6 7.6 10.5 4 16 4C21.5 4 26 7.6 26 12C26 22 16 28 16 28Z"
+        fill="currentColor"
+        opacity="0.9"
+      />
+      <path
+        d="M16 28C16 28 16 16 16 8"
+        stroke="#F6F0E4"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 14C16 14 12 12 10 10"
+        stroke="#F6F0E4"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+      <path
+        d="M16 18C16 18 19.5 15.5 22 13"
+        stroke="#F6F0E4"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+    </svg>
+  );
+}
+
+// ─── Animated Leaf (floating) ─────────────────────────────────────────────────
+function FloatingLeaf({ delay = 0, size = 40, x = 0, y = 0, opacity = 0.15 }: {
+  delay?: number; size?: number; x?: number; y?: number; opacity?: number;
+}) {
+  return (
+    <motion.div
+      className="absolute pointer-events-none text-accent"
+      style={{ left: `${x}%`, top: `${y}%`, opacity }}
+      animate={{ y: [0, -18, 0], rotate: [0, 8, -4, 0] }}
+      transition={{ duration: 5 + delay, repeat: Infinity, delay, ease: "easeInOut" }}
+    >
+      <LeafIcon size={size} />
+    </motion.div>
+  );
+}
+
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+function TopNav({ current, onNav, loggedIn }: { current: Page; onNav: (p: Page) => void; loggedIn: boolean }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-card/90 backdrop-blur-sm border-b border-border shadow-sm">
+      <button onClick={() => onNav("landing")} className="flex items-center gap-2 group">
+        <span className="text-accent group-hover:scale-110 transition-transform">
+          <LeafIcon size={28} />
+        </span>
+        <span className="font-['Playfair_Display'] text-xl font-bold text-foreground tracking-tight">Leaf</span>
+      </button>
+
+      {/* Desktop nav */}
+      <div className="hidden md:flex items-center gap-1">
+        {loggedIn ? (
+          <>
+            <NavBtn active={current === "dashboard"} onClick={() => onNav("dashboard")} icon={<Home size={15} />} label="Home" />
+            <NavBtn active={current === "editor"} onClick={() => onNav("editor")} icon={<Feather size={15} />} label="Write" />
+            <NavBtn active={current === "builder"} onClick={() => onNav("builder")} icon={<Layers size={15} />} label="Builder" />
+            <NavBtn active={current === "explore"} onClick={() => onNav("explore")} icon={<Compass size={15} />} label="Explore" />
+            <NavBtn active={current === "collab"} onClick={() => onNav("collab")} icon={<Users size={15} />} label="Collab" />
+            <NavBtn active={current === "courses"} onClick={() => onNav("courses")} icon={<GraduationCap size={15} />} label="Courses" />
+          </>
+        ) : (
+          <>
+            <NavBtn active={false} onClick={() => onNav("explore")} icon={<Compass size={15} />} label="Explore" />
+            <NavBtn active={false} onClick={() => onNav("courses")} icon={<GraduationCap size={15} />} label="Courses" />
+          </>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        {loggedIn ? (
+          <>
+            <button className="p-2 rounded-full hover:bg-muted transition-colors relative">
+              <Bell size={18} className="text-muted-foreground" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
+            </button>
+            <button onClick={() => onNav("profile")} className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-semibold text-sm hover:scale-105 transition-transform">
+              A
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => onNav("signin")} className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">Sign in</button>
+            <button onClick={() => onNav("signup")} className="text-sm bg-primary text-primary-foreground px-4 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+              Get started
+            </button>
+          </>
+        )}
+        <button className="md:hidden p-2" onClick={() => setMenuOpen(!menuOpen)}>
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-full left-0 right-0 bg-card border-b border-border p-4 flex flex-col gap-2 md:hidden"
+          >
+            {loggedIn ? (
+              <>
+                {(["dashboard","editor","builder","explore","collab","courses"] as Page[]).map(p => (
+                  <button key={p} onClick={() => { onNav(p); setMenuOpen(false); }} className="text-left py-2 px-3 rounded-lg hover:bg-muted capitalize transition-colors">{p}</button>
+                ))}
+              </>
+            ) : (
+              <>
+                <button onClick={() => { onNav("explore"); setMenuOpen(false); }} className="text-left py-2 px-3 rounded-lg hover:bg-muted">Explore</button>
+                <button onClick={() => { onNav("courses"); setMenuOpen(false); }} className="text-left py-2 px-3 rounded-lg hover:bg-muted">Courses</button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+}
+
+function NavBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
+        active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
+function LandingPage({ onNav }: { onNav: (p: Page) => void }) {
+  const stories = [
+    { title: "The Last Garden", author: "Mira Osei", genre: "Fantasy", likes: 2841, cover: "https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=280&h=380&fit=crop&auto=format", color: "bg-emerald-100" },
+    { title: "Letters to Nowhere", author: "James Valls", genre: "Romance", likes: 1423, cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=280&h=380&fit=crop&auto=format", color: "bg-rose-100" },
+    { title: "The Iron Cartographer", author: "Leila Harth", genre: "Sci-Fi", likes: 3200, cover: "https://images.unsplash.com/photo-1446776858070-70c3d5ed6758?w=280&h=380&fit=crop&auto=format", color: "bg-sky-100" },
+    { title: "Dust and Dynasties", author: "Ryo Tanaka", genre: "Historical", likes: 987, cover: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=280&h=380&fit=crop&auto=format", color: "bg-amber-100" },
+    { title: "Voices in the Fog", author: "Camille Breton", genre: "Mystery", likes: 1654, cover: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=280&h=380&fit=crop&auto=format", color: "bg-purple-100" },
+  ];
+
+  const testimonials = [
+    { name: "Amara K.", role: "Fantasy Writer", text: "Leaf changed how I plan my stories. The AI suggestions never feel robotic — they feel like a thoughtful co-author." },
+    { name: "David M.", role: "Debut Novelist", text: "The world builder is genuinely magical. I mapped my entire five-book series on one canvas." },
+    { name: "Sofia L.", role: "Hobbyist Writer", text: "I tried six other platforms. None of them felt as calm and focused as Leaf." },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Hero */}
+      <section className="relative overflow-hidden pt-28 pb-24 px-6">
+        <FloatingLeaf x={8} y={10} size={60} opacity={0.12} />
+        <FloatingLeaf x={85} y={5} size={40} delay={1.5} opacity={0.1} />
+        <FloatingLeaf x={75} y={60} size={80} delay={0.8} opacity={0.08} />
+        <FloatingLeaf x={15} y={70} size={50} delay={2} opacity={0.09} />
+
+        {/* Grain texture overlay */}
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+          backgroundSize: "200px 200px",
+        }} />
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-full px-4 py-1.5 text-sm text-muted-foreground mb-8">
+              <LeafIcon size={16} />
+              <span>Your creative writing universe</span>
+            </div>
+
+            <h1 className="font-['Playfair_Display'] text-6xl md:text-8xl font-black text-foreground mb-6 leading-[1.05]">
+              Write.<br />
+              <span className="italic text-accent" style={{ WebkitTextStroke: "1px #3B2F2A" }}>Imagine.</span><br />
+              Grow.
+            </h1>
+
+            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed font-light">
+              A creative home for writers, storytellers, and dreamers. Powered by AI that understands your voice.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onNav("signup")}
+                className="bg-primary text-primary-foreground px-8 py-3.5 rounded-full text-base font-medium hover:opacity-90 transition-opacity flex items-center gap-2 justify-center"
+              >
+                <Feather size={18} /> Start Writing — it's free
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onNav("explore")}
+                className="bg-card border border-border text-foreground px-8 py-3.5 rounded-full text-base font-medium hover:bg-secondary transition-colors flex items-center gap-2 justify-center"
+              >
+                <BookOpen size={18} /> Explore Stories
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Hero illustration */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.3 }}
+            className="mt-16 relative"
+          >
+            <div className="relative mx-auto max-w-3xl rounded-3xl overflow-hidden shadow-2xl border border-border/50">
+              <img
+                src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&h=600&fit=crop&auto=format"
+                alt="Writer at desk surrounded by warm light"
+                className="w-full h-72 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
+              {/* Floating editor mock */}
+              <div className="absolute bottom-4 left-4 right-4 bg-card/95 backdrop-blur rounded-2xl p-4 flex items-start gap-3 shadow-lg">
+                <span className="text-accent mt-0.5"><LeafIcon size={20} /></span>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">AI Writing Assistant</p>
+                  <p className="text-sm text-foreground">"This paragraph has beautiful tension — consider letting Kira's silence speak louder here..."</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* What is Leaf */}
+      <section className="py-20 px-6 bg-secondary/40">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="font-['Playfair_Display'] text-4xl md:text-5xl font-bold text-center mb-3">Everything a writer needs</h2>
+          <p className="text-center text-muted-foreground mb-12">Four pillars. One creative universe.</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: <Feather size={28} />, title: "Write Stories", desc: "A distraction-free editor that feels like your favorite notebook — just you and the page.", color: "bg-amber-50 text-amber-700" },
+              { icon: <Sparkles size={28} />, title: "AI Writing Coach", desc: "Grammar, tone, dialogue, consistency — your always-on creative partner.", color: "bg-green-50 text-green-700" },
+              { icon: <Layers size={28} />, title: "World Builder", desc: "Map characters, plot events, and locations on an infinite Figma-style canvas.", color: "bg-sky-50 text-sky-700" },
+              { icon: <GraduationCap size={28} />, title: "Learning Academy", desc: "Beginner to advanced courses taught by published storytellers.", color: "bg-rose-50 text-rose-700" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-card rounded-2xl p-6 shadow-sm border border-border/50 hover:shadow-md hover:-translate-y-1 transition-all cursor-default"
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${item.color}`}>
+                  {item.icon}
+                </div>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Stories */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <h2 className="font-['Playfair_Display'] text-4xl font-bold mb-1">Featured Stories</h2>
+              <p className="text-muted-foreground text-sm">Handpicked from our community</p>
+            </div>
+            <button onClick={() => onNav("explore")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              See all <ChevronRight size={14} />
+            </button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+            {stories.map((s, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="flex-shrink-0 w-52 snap-start"
+              >
+                <div className={`w-full h-72 rounded-2xl overflow-hidden mb-3 shadow-md ${s.color}`}>
+                  <img src={s.cover} alt={s.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+                <p className="font-['Playfair_Display'] font-semibold text-sm leading-snug mb-0.5">{s.title}</p>
+                <p className="text-xs text-muted-foreground mb-1">{s.author} · {s.genre}</p>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Heart size={11} className="text-rose-400" /> {s.likes.toLocaleString()}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Courses Preview */}
+      <section className="py-20 px-6 bg-secondary/30">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="font-['Playfair_Display'] text-4xl font-bold mb-2">Grow as a writer</h2>
+          <p className="text-muted-foreground mb-10">Structured courses by craft, not length.</p>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              { title: "Beginner Storytelling", lessons: 12, level: "Beginner", icon: "🌱", students: 4820 },
+              { title: "Character Development", lessons: 8, level: "Intermediate", icon: "✍️", students: 3110 },
+              { title: "World Building Basics", lessons: 10, level: "Intermediate", icon: "🌍", students: 2590 },
+            ].map((c, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer"
+                onClick={() => onNav("courses")}
+              >
+                <div className="text-3xl mb-4">{c.icon}</div>
+                <span className="text-xs bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full font-medium">{c.level}</span>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold mt-3 mb-1">{c.title}</h3>
+                <p className="text-xs text-muted-foreground mb-4">{c.lessons} lessons · {c.students.toLocaleString()} students</p>
+                <div className="w-full bg-muted rounded-full h-1.5">
+                  <div className="bg-accent h-1.5 rounded-full" style={{ width: "0%" }} />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Start learning →</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Community */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="font-['Playfair_Display'] text-4xl font-bold mb-10">What writers say</h2>
+          <div className="grid md:grid-cols-3 gap-5">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="bg-card border border-border/50 rounded-2xl p-5 text-left shadow-sm"
+              >
+                <MessageCircle size={18} className="text-accent mb-3" />
+                <p className="text-sm leading-relaxed text-foreground mb-4">"{t.text}"</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-accent/30 flex items-center justify-center text-xs font-semibold">{t.name[0]}</div>
+                  <div>
+                    <p className="text-xs font-semibold">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 px-6 bg-primary text-primary-foreground relative overflow-hidden">
+        <FloatingLeaf x={10} y={20} size={80} opacity={0.08} />
+        <FloatingLeaf x={80} y={50} size={120} delay={1} opacity={0.06} />
+        <div className="max-w-2xl mx-auto text-center relative z-10">
+          <h2 className="font-['Playfair_Display'] text-4xl md:text-5xl font-bold mb-4">Your story is waiting.</h2>
+          <p className="opacity-70 mb-8 text-lg">Join 80,000+ writers already building their worlds on Leaf.</p>
+          <button
+            onClick={() => onNav("signup")}
+            className="bg-accent text-accent-foreground px-10 py-4 rounded-full font-semibold text-base hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+          >
+            <Feather size={18} /> Begin your story
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-border px-6 py-12">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between gap-8">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-accent"><LeafIcon size={24} /></span>
+              <span className="font-['Playfair_Display'] text-lg font-bold">Leaf</span>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-xs">A creative home for writers, storytellers, and dreamers.</p>
+          </div>
+          {[
+            { heading: "Product", links: ["Features", "Courses", "Community", "AI Assistant"] },
+            { heading: "Company", links: ["About", "Blog", "Careers", "Press"] },
+            { heading: "Support", links: ["Help Center", "Privacy", "Terms", "Contact"] },
+          ].map((col, i) => (
+            <div key={i}>
+              <h4 className="font-semibold text-sm mb-3">{col.heading}</h4>
+              <ul className="space-y-2">
+                {col.links.map(l => (
+                  <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="max-w-5xl mx-auto mt-10 pt-6 border-t border-border flex justify-between items-center text-xs text-muted-foreground">
+          <span>© 2025 Leaf. All rights reserved.</span>
+          <span className="flex items-center gap-1"><LeafIcon size={12} /> Made for storytellers</span>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ─── SIGN IN / SIGN UP ────────────────────────────────────────────────────────
+function AuthPage({ mode, onNav, onLogin }: { mode: "signin" | "signup"; onNav: (p: Page) => void; onLogin: () => void }) {
+  const [role, setRole] = useState<"writer" | "reader">("writer");
+  const isSignup = mode === "signup";
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left panel */}
+      <div className="hidden lg:flex flex-1 bg-primary relative overflow-hidden flex-col items-center justify-center text-primary-foreground">
+        <FloatingLeaf x={20} y={15} size={80} opacity={0.1} />
+        <FloatingLeaf x={60} y={60} size={120} delay={1.2} opacity={0.08} />
+        <FloatingLeaf x={10} y={70} size={50} delay={0.6} opacity={0.12} />
+        <motion.div
+          animate={{ y: [0, -12, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="text-accent mb-8"
+        >
+          <LeafIcon size={100} />
+        </motion.div>
+        <h2 className="font-['Playfair_Display'] text-4xl font-bold text-center mb-3">Your story<br />starts here.</h2>
+        <p className="opacity-60 text-center max-w-xs">Join a community of writers building worlds, one word at a time.</p>
+
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-6 text-xs opacity-40">
+          <span>80,000+ writers</span>
+          <span>·</span>
+          <span>2M+ stories</span>
+          <span>·</span>
+          <span>150+ countries</span>
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center px-8 py-16 bg-background">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="w-full max-w-sm"
+        >
+          <div className="flex items-center gap-2 mb-8">
+            <span className="text-accent"><LeafIcon size={28} /></span>
+            <span className="font-['Playfair_Display'] text-xl font-bold">Leaf</span>
+          </div>
+
+          <h1 className="font-['Playfair_Display'] text-3xl font-bold mb-1">
+            {isSignup ? "Join Leaf" : "Welcome back"}
+          </h1>
+          <p className="text-muted-foreground text-sm mb-7">
+            {isSignup ? "Create your writing account" : "Sign in to your creative space"}
+          </p>
+
+          <form onSubmit={e => { e.preventDefault(); onLogin(); onNav("dashboard"); }} className="space-y-4">
+            {isSignup && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Username</label>
+                <input className="w-full bg-input-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="your_pen_name" />
+              </div>
+            )}
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Email</label>
+              <input type="email" className="w-full bg-input-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Password</label>
+              <input type="password" className="w-full bg-input-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="••••••••" />
+            </div>
+            {isSignup && (
+              <>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Confirm Password</label>
+                  <input type="password" className="w-full bg-input-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="••••••••" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">I am a...</label>
+                  <div className="flex gap-2">
+                    {(["writer", "reader"] as const).map(r => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRole(r)}
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                          role === r ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"
+                        }`}
+                      >
+                        {r === "writer" ? "✍️ Writer" : "📖 Reader"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {!isSignup && (
+              <div className="flex justify-end">
+                <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Forgot password?</a>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity mt-2 flex items-center justify-center gap-2"
+            >
+              <LeafIcon size={18} />
+              {isSignup ? "Enter Leaf" : "Sign In"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            {isSignup ? "Already have an account? " : "Don't have an account? "}
+            <button onClick={() => onNav(isSignup ? "signin" : "signup")} className="text-foreground font-medium hover:underline">
+              {isSignup ? "Sign in" : "Join free"}
+            </button>
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function Dashboard({ onNav }: { onNav: (p: Page) => void }) {
+  const stories = [
+    { title: "The Hollow Crown", chapters: 7, words: 18420, updated: "2h ago", cover: "bg-amber-200" },
+    { title: "Echoes of Aelindra", chapters: 3, words: 6800, updated: "Yesterday", cover: "bg-sky-200" },
+    { title: "The Paper Witch", chapters: 12, words: 31000, updated: "3 days ago", cover: "bg-rose-200" },
+    { title: "Salt and Stars", chapters: 1, words: 1200, updated: "1 week ago", cover: "bg-emerald-200" },
+  ];
+  const trending = [
+    { title: "Midnight Parliament", author: "Vera Obi", likes: 5430, genre: "Fantasy" },
+    { title: "The Wax Garden", author: "Luca Ferrini", likes: 3220, genre: "Horror" },
+    { title: "Cassidy Blue", author: "Neha Patel", likes: 2880, genre: "Romance" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background pt-16">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Greeting */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="font-['Playfair_Display'] text-3xl font-bold mb-0.5">Good afternoon, Amara ✨</h1>
+            <p className="text-muted-foreground text-sm">Your creative universe is waiting.</p>
+          </div>
+          <button onClick={() => onNav("editor")} className="bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <Plus size={16} /> New Story
+          </button>
+        </div>
+
+        {/* Continue Writing */}
+        <div className="bg-card border border-border/50 rounded-2xl p-6 mb-6 shadow-sm">
+          <h2 className="font-['Playfair_Display'] text-xl font-semibold mb-4 flex items-center gap-2">
+            <span className="text-accent"><LeafIcon size={20} /></span> Continue Writing
+          </h2>
+          <div
+            onClick={() => onNav("editor")}
+            className="flex items-center gap-4 bg-secondary/50 rounded-xl p-4 cursor-pointer hover:bg-secondary transition-colors group"
+          >
+            <div className="w-16 h-20 rounded-lg bg-amber-200 flex-shrink-0 overflow-hidden">
+              <div className="w-full h-full flex items-center justify-center text-2xl">📖</div>
+            </div>
+            <div className="flex-1">
+              <p className="font-['Playfair_Display'] font-semibold text-base mb-0.5">The Hollow Crown</p>
+              <p className="text-xs text-muted-foreground mb-2">Chapter 7 · 18,420 words · Last edited 2h ago</p>
+              <div className="w-full bg-muted rounded-full h-1.5">
+                <div className="bg-accent h-1.5 rounded-full" style={{ width: "38%" }} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">38% complete</p>
+            </div>
+            <ChevronRight size={20} className="text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* My Stories */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-['Playfair_Display'] text-xl font-semibold">My Stories</h2>
+              <button className="text-xs text-muted-foreground hover:text-foreground">View all</button>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {stories.map((s, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                  onClick={() => onNav("editor")}
+                  className="bg-card border border-border/50 rounded-xl p-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all flex gap-3"
+                >
+                  <div className={`w-10 h-14 rounded-lg ${s.cover} flex-shrink-0 flex items-center justify-center text-lg`}>📔</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-['Playfair_Display'] font-semibold text-sm truncate">{s.title}</p>
+                    <p className="text-xs text-muted-foreground">{s.chapters} ch · {s.words.toLocaleString()} words</p>
+                    <p className="text-xs text-muted-foreground">{s.updated}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right sidebar */}
+          <div className="space-y-5">
+            {/* Stats */}
+            <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
+              <h3 className="font-semibold text-sm mb-4">Your writing this week</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Words written", value: "4,820", icon: <Feather size={14} /> },
+                  { label: "Stories updated", value: "3", icon: <BookOpen size={14} /> },
+                  { label: "Streak", value: "12 days", icon: <Star size={14} /> },
+                  { label: "Readers", value: "284", icon: <Eye size={14} /> },
+                ].map((s, i) => (
+                  <div key={i} className="bg-muted/50 rounded-xl p-3">
+                    <div className="flex items-center gap-1 text-accent mb-1">{s.icon}</div>
+                    <p className="font-['Playfair_Display'] font-bold text-lg">{s.value}</p>
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Trending */}
+            <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-1.5"><TrendingUp size={14} /> Trending Now</h3>
+              <div className="space-y-3">
+                {trending.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onNav("explore")}>
+                    <span className="text-muted-foreground text-xs w-4">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.author} · {t.genre}</p>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                      <Heart size={10} /> {(t.likes / 1000).toFixed(1)}k
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating AI button */}
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        onClick={() => onNav("editor")}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-accent text-accent-foreground rounded-full shadow-xl flex items-center justify-center z-40 hover:shadow-2xl transition-shadow"
+      >
+        <Sparkles size={22} />
+      </motion.button>
+    </div>
+  );
+}
+
+// ─── STORY EDITOR ─────────────────────────────────────────────────────────────
+function StoryEditor({ onNav }: { onNav: (p: Page) => void }) {
+  const [aiOpen, setAiOpen] = useState(true);
+  const [tone, setTone] = useState(2);
+  const [content, setContent] = useState(`The morning Kira found the letter, the air smelled of old paper and burnt roses.
+
+She turned the envelope over in her hands — her name written in ink she recognized but refused to believe. The handwriting was her mother's. Her mother, who had been dead for seven years.
+
+The kitchen clock ticked in the silence. Outside, a crow called once and went quiet.
+
+Kira set the envelope on the table, poured herself a cup of tea she wouldn't drink, and sat down to think about what it meant to receive mail from the dead.`);
+
+  const suggestions = [
+    { label: "Make more emotional", icon: "💭", type: "enhance" },
+    { label: "Fix grammar", icon: "✓", type: "grammar" },
+    { label: "Improve dialogue", icon: "💬", type: "dialogue" },
+    { label: "Add sensory detail", icon: "🌿", type: "detail" },
+    { label: "Slow the pacing", icon: "⏳", type: "pacing" },
+  ];
+  const tones = ["Dark", "Neutral", "Romantic", "Poetic"];
+  const chapters = [
+    { num: 1, title: "The Letter", active: false },
+    { num: 2, title: "Seven-Year Silence", active: false },
+    { num: 3, title: "The Map", active: false },
+    { num: 4, title: "Kira's Return", active: false },
+    { num: 5, title: "What the Crow Knows", active: false },
+    { num: 6, title: "Ash and Glass", active: false },
+    { num: 7, title: "The Ending We Choose", active: true },
+  ];
+
+  return (
+    <div className="h-screen bg-background flex flex-col pt-16 overflow-hidden">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-border flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={() => onNav("dashboard")} className="text-muted-foreground hover:text-foreground transition-colors text-sm flex items-center gap-1">
+            ← Back
+          </button>
+          <span className="text-border">|</span>
+          <span className="font-['Playfair_Display'] font-semibold">The Hollow Crown</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="w-2 h-2 bg-green-400 rounded-full" />
+            Saved just now 🍃
+          </span>
+          <button className="text-xs bg-muted px-3 py-1.5 rounded-lg hover:bg-secondary transition-colors flex items-center gap-1">
+            <Eye size={13} /> Preview
+          </button>
+          <button className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity">
+            Publish
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left: Chapters */}
+        <div className="w-52 flex-shrink-0 border-r border-border bg-card overflow-y-auto hidden md:flex flex-col">
+          <div className="p-4 border-b border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Chapters</p>
+            <button className="w-full flex items-center gap-2 text-xs bg-secondary rounded-lg px-3 py-2 hover:bg-accent/20 transition-colors">
+              <Plus size={12} /> Add Chapter
+            </button>
+          </div>
+          <div className="flex-1 p-2 space-y-0.5">
+            {chapters.map((c) => (
+              <div
+                key={c.num}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
+                  c.active ? "bg-accent/20 text-foreground font-medium" : "hover:bg-muted text-muted-foreground"
+                }`}
+              >
+                <span className="text-xs w-4 text-center opacity-50">{c.num}</span>
+                <span className="truncate">{c.title}</span>
+              </div>
+            ))}
+          </div>
+          <div className="p-3 border-t border-border">
+            <button onClick={() => onNav("builder")} className="w-full flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2 px-3 rounded-lg hover:bg-muted">
+              <Layers size={13} /> Story Builder
+            </button>
+          </div>
+        </div>
+
+        {/* Center: Canvas */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#FEFCF7]">
+          {/* Toolbar */}
+          <div className="flex items-center gap-1 px-4 py-2 border-b border-border bg-card/50 flex-wrap">
+            {[Bold, Italic].map((Icon, i) => (
+              <button key={i} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                <Icon size={15} />
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border mx-1" />
+            {[AlignLeft, Quote].map((Icon, i) => (
+              <button key={i} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                <Icon size={15} />
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border mx-1" />
+            <select className="text-xs bg-transparent text-muted-foreground border-none outline-none">
+              <option>Georgia</option>
+              <option>Inter</option>
+              <option>Playfair</option>
+            </select>
+          </div>
+
+          {/* Writing area */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-2xl mx-auto px-8 py-10">
+              <h2 className="font-['Playfair_Display'] text-2xl font-bold mb-6 text-foreground">Chapter 7 — The Ending We Choose</h2>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full min-h-[500px] bg-transparent text-foreground text-[1.05rem] leading-8 resize-none focus:outline-none font-['Lora'] placeholder:text-muted-foreground"
+                placeholder="Begin your chapter..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right: AI Panel */}
+        <AnimatePresence>
+          {aiOpen && (
+            <motion.div
+              initial={{ x: 300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 300, opacity: 0 }}
+              className="w-72 flex-shrink-0 border-l border-border bg-card overflow-y-auto flex flex-col hidden lg:flex"
+            >
+              <div className="p-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#A7D7A8]"><Sparkles size={16} /></span>
+                  <span className="font-semibold text-sm">Leaf AI</span>
+                </div>
+                <button onClick={() => setAiOpen(false)} className="text-muted-foreground hover:text-foreground"><X size={15} /></button>
+              </div>
+
+              {/* Suggestions */}
+              <div className="p-4 border-b border-border">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Suggestions</p>
+                <div className="space-y-2">
+                  {suggestions.map((s, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ x: 2 }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-secondary/60 hover:bg-[#A7D7A8]/20 text-left text-sm transition-colors group"
+                    >
+                      <span>{s.icon}</span>
+                      <span className="text-foreground text-xs">{s.label}</span>
+                      <ArrowRight size={11} className="ml-auto text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tone slider */}
+              <div className="p-4 border-b border-border">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Tone</p>
+                <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                  {tones.map((t, i) => (
+                    <button key={i} onClick={() => setTone(i)} className={`transition-all ${tone === i ? "text-foreground font-semibold" : "hover:text-foreground"}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="range" min={0} max={3} value={tone}
+                  onChange={e => setTone(Number(e.target.value))}
+                  className="w-full accent-amber-400"
+                />
+                <p className="text-center text-xs text-muted-foreground mt-1">{tones[tone]}</p>
+              </div>
+
+              {/* Character check */}
+              <div className="p-4 border-b border-border">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Characters in scene</p>
+                {[
+                  { name: "Kira", role: "Protagonist", status: "consistent" },
+                  { name: "Mother (ghost)", role: "Catalyst", status: "consistent" },
+                ].map((c, i) => (
+                  <div key={i} className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-accent/30 text-xs flex items-center justify-center font-semibold">{c.name[0]}</div>
+                    <div>
+                      <p className="text-xs font-medium">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">{c.role}</p>
+                    </div>
+                    <CheckCircle size={12} className="ml-auto text-[#A7D7A8]" />
+                  </div>
+                ))}
+              </div>
+
+              {/* AI Chat */}
+              <div className="p-4 flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Ask Leaf AI</p>
+                <div className="space-y-3 mb-3">
+                  <div className="bg-[#A7D7A8]/20 rounded-xl p-3 text-xs leading-relaxed">
+                    The imagery in this chapter is vivid. The crow motif could be echoed again near the ending for resonance.
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <input className="flex-1 bg-input-background border border-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring" placeholder="Ask about your story..." />
+                  <button className="bg-primary text-primary-foreground p-2 rounded-xl hover:opacity-90">
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!aiOpen && (
+          <button
+            onClick={() => setAiOpen(true)}
+            className="fixed bottom-6 right-6 w-12 h-12 bg-accent text-accent-foreground rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform z-40"
+          >
+            <Sparkles size={20} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── STORY BUILDER ────────────────────────────────────────────────────────────
+function StoryBuilder({ onNav }: { onNav: (p: Page) => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [aiPanel, setAiPanel] = useState(false);
+
+  const characters = [
+    { id: "c1", name: "Kira Ashvane", role: "Protagonist", traits: "Determined, haunted, sharp-witted", x: 120, y: 100, color: "bg-amber-100 border-amber-300" },
+    { id: "c2", name: "Lord Aldren", role: "Antagonist", traits: "Calculating, charming, ruthless", x: 420, y: 80, color: "bg-rose-100 border-rose-300" },
+    { id: "c3", name: "The Merchant", role: "Ally", traits: "Secretive, loyal, old", x: 270, y: 260, color: "bg-sky-100 border-sky-300" },
+  ];
+  const plotPoints = [
+    { id: "p1", title: "The Letter Arrives", type: "event", x: 160, y: 360, color: "bg-amber-50 border-amber-200" },
+    { id: "p2", title: "Kira enters the palace", type: "event", x: 340, y: 420, color: "bg-amber-50 border-amber-200" },
+    { id: "p3", title: "Betrayal revealed", type: "twist", x: 500, y: 300, color: "bg-rose-50 border-rose-200" },
+  ];
+  const locations = [
+    { id: "l1", name: "The Hollow City", desc: "A city built around a canyon", x: 80, y: 500, color: "bg-green-100 border-green-300" },
+    { id: "l2", name: "Iron Palace", desc: "Seat of the crumbling empire", x: 400, y: 480, color: "bg-purple-100 border-purple-300" },
+  ];
+
+  return (
+    <div className="h-screen bg-background flex flex-col pt-16 overflow-hidden">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-card border-b border-border flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={() => onNav("editor")} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">← Editor</button>
+          <span className="text-border">|</span>
+          <span className="font-['Playfair_Display'] font-semibold text-sm">The Hollow Crown — World Map</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {[
+            { icon: <User size={13} />, label: "Character" },
+            { icon: <MapPin size={13} />, label: "Location" },
+            { icon: <Star size={13} />, label: "Plot Event" },
+            { icon: <Link size={13} />, label: "Connect" },
+          ].map((t, i) => (
+            <button key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-card border border-border hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              {t.icon} {t.label}
+            </button>
+          ))}
+          <div className="w-px h-4 bg-border mx-1" />
+          <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"><ZoomIn size={14} /></button>
+          <button className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"><ZoomOut size={14} /></button>
+          <button
+            onClick={() => setAiPanel(!aiPanel)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[#A7D7A8]/20 text-foreground border border-[#A7D7A8]/40 hover:bg-[#A7D7A8]/30 transition-colors"
+          >
+            <Sparkles size={13} /> AI Assist
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Canvas */}
+        <div className="flex-1 relative overflow-hidden" style={{
+          backgroundImage: `radial-gradient(circle, rgba(59,47,42,0.08) 1px, transparent 1px)`,
+          backgroundSize: "28px 28px",
+          backgroundColor: "#F6F0E4",
+        }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: "visible" }}>
+            {/* Connection lines */}
+            <line x1="176" y1="150" x2="286" y2="290" stroke="rgba(59,47,42,0.15)" strokeWidth="1.5" strokeDasharray="5,4" />
+            <line x1="466" y1="130" x2="286" y2="290" stroke="rgba(59,47,42,0.15)" strokeWidth="1.5" strokeDasharray="5,4" />
+            <line x1="176" y1="150" x2="200" y2="385" stroke="rgba(59,47,42,0.1)" strokeWidth="1.5" strokeDasharray="5,4" />
+            <line x1="286" y1="290" x2="370" y2="445" stroke="rgba(59,47,42,0.1)" strokeWidth="1.5" strokeDasharray="5,4" />
+            <line x1="466" y1="130" x2="530" y2="325" stroke="rgba(242,50,50,0.15)" strokeWidth="2" strokeDasharray="5,4" />
+          </svg>
+
+          {/* Character cards */}
+          {characters.map(c => (
+            <motion.div
+              key={c.id}
+              className={`absolute w-44 border-2 rounded-xl p-3 shadow-md cursor-pointer ${c.color} ${selected === c.id ? "ring-2 ring-accent shadow-lg" : ""}`}
+              style={{ left: c.x, top: c.y }}
+              drag
+              dragMomentum={false}
+              onClick={() => setSelected(c.id)}
+              whileHover={{ scale: 1.02 }}
+              whileDrag={{ scale: 1.04, zIndex: 50 }}
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center text-xs font-bold">{c.name[0]}</div>
+                <div>
+                  <p className="text-xs font-['Playfair_Display'] font-semibold leading-tight">{c.name}</p>
+                  <p className="text-xs opacity-60">{c.role}</p>
+                </div>
+              </div>
+              <p className="text-xs opacity-70 leading-snug">{c.traits}</p>
+              <div className="flex items-center gap-1 mt-2">
+                <Move size={9} className="opacity-30" />
+                <span className="text-xs opacity-30">drag to move</span>
+              </div>
+            </motion.div>
+          ))}
+
+          {/* Plot points */}
+          {plotPoints.map(p => (
+            <motion.div
+              key={p.id}
+              className={`absolute w-40 border rounded-xl p-3 shadow-sm cursor-pointer ${p.color} ${selected === p.id ? "ring-2 ring-accent" : ""}`}
+              style={{ left: p.x, top: p.y }}
+              drag
+              dragMomentum={false}
+              onClick={() => setSelected(p.id)}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Star size={11} className={p.type === "twist" ? "text-rose-500" : "text-amber-500"} />
+                <span className="text-xs opacity-50 capitalize">{p.type}</span>
+              </div>
+              <p className="text-xs font-['Playfair_Display'] font-semibold">{p.title}</p>
+            </motion.div>
+          ))}
+
+          {/* Locations */}
+          {locations.map(l => (
+            <motion.div
+              key={l.id}
+              className={`absolute w-44 border-2 rounded-xl p-3 shadow-md cursor-pointer ${l.color} ${selected === l.id ? "ring-2 ring-accent" : ""}`}
+              style={{ left: l.x, top: l.y }}
+              drag
+              dragMomentum={false}
+              onClick={() => setSelected(l.id)}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <MapPin size={12} className="opacity-60" />
+                <span className="text-xs font-['Playfair_Display'] font-semibold">{l.name}</span>
+              </div>
+              <p className="text-xs opacity-60">{l.desc}</p>
+            </motion.div>
+          ))}
+
+          {/* Canvas hint */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-card/80 backdrop-blur rounded-full px-4 py-2 text-xs text-muted-foreground shadow">
+            <Move size={12} /> Drag cards to rearrange · Click to select
+          </div>
+        </div>
+
+        {/* AI side panel */}
+        <AnimatePresence>
+          {aiPanel && (
+            <motion.div
+              initial={{ x: 280 }}
+              animate={{ x: 0 }}
+              exit={{ x: 280 }}
+              className="w-64 bg-card border-l border-border p-4 flex flex-col gap-4 overflow-y-auto"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-sm flex items-center gap-2"><Sparkles size={14} className="text-[#A7D7A8]" /> AI Assist</p>
+                <button onClick={() => setAiPanel(false)}><X size={14} className="text-muted-foreground" /></button>
+              </div>
+              {[
+                { label: "Suggest plot twist", icon: "⚡" },
+                { label: "Check story consistency", icon: "🔍" },
+                { label: "Generate character conflict", icon: "💥" },
+                { label: "Suggest story arc", icon: "📈" },
+              ].map((a, i) => (
+                <button key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary hover:bg-[#A7D7A8]/20 text-left text-sm transition-colors">
+                  <span className="text-base">{a.icon}</span>
+                  <span>{a.label}</span>
+                </button>
+              ))}
+              <div className="bg-[#A7D7A8]/20 rounded-xl p-3 text-xs leading-relaxed">
+                <p className="font-semibold mb-1">Story health</p>
+                <p className="text-muted-foreground">3 characters · 2 locations · 3 plot events. Consider adding a midpoint crisis.</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+// ─── EXPLORE ──────────────────────────────────────────────────────────────────
+function ExplorePage({ onNav }: { onNav: (p: Page) => void }) {
+  const [activeFilter, setActiveFilter] = useState("Trending");
+  const filters = ["Trending", "New Writers", "Romance", "Fantasy", "Mystery", "Sci-Fi", "Historical"];
+  const stories = [
+    { title: "Midnight Parliament", author: "Vera Obi", genre: "Fantasy", excerpt: "The council met at the bottom of the world, where the stars burned cold and promises were made of stone...", likes: 5430, comments: 284, image: "https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=120&h=160&fit=crop&auto=format" },
+    { title: "The Wax Garden", author: "Luca Ferrini", genre: "Horror", excerpt: "Every morning she found new flowers. Every morning they smelled like someone she used to know.", likes: 3220, comments: 197, image: "https://images.unsplash.com/photo-1490750967868-88df5691cc2c?w=120&h=160&fit=crop&auto=format" },
+    { title: "Cassidy Blue", author: "Neha Patel", genre: "Romance", excerpt: "He had her coffee order memorized before he learned her name. Some stories begin in the margins.", likes: 2880, comments: 342, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=160&fit=crop&auto=format" },
+    { title: "Iron and Aftermath", author: "James Osei", genre: "Historical", excerpt: "The war ended on a Tuesday. Nobody remembered to tell the mountains.", likes: 1940, comments: 88, image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=120&h=160&fit=crop&auto=format" },
+    { title: "Static Between Stars", author: "Ayesha Ramirez", genre: "Sci-Fi", excerpt: "The last human broadcast was a recipe for apple cake. The aliens are still confused.", likes: 4120, comments: 517, image: "https://images.unsplash.com/photo-1446776858070-70c3d5ed6758?w=120&h=160&fit=crop&auto=format" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background pt-20">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <h1 className="font-['Playfair_Display'] text-3xl font-bold mb-1">Explore Stories</h1>
+        <p className="text-muted-foreground text-sm mb-6">Discover what the community is reading.</p>
+
+        {/* Search */}
+        <div className="relative mb-5">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input className="w-full bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Search stories, authors, genres..." />
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
+          {filters.map(f => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm transition-all ${
+                activeFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        {/* Story cards */}
+        <div className="space-y-4">
+          {stories.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07 }}
+              className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="flex gap-4">
+                <div className="w-20 h-28 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+                  <img src={s.image} alt={s.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div>
+                      <h3 className="font-['Playfair_Display'] font-semibold text-base leading-tight">{s.title}</h3>
+                      <p className="text-xs text-muted-foreground">{s.author} · <span className="text-accent-foreground bg-accent/20 px-1.5 py-0.5 rounded-full">{s.genre}</span></p>
+                    </div>
+                    <button className="text-muted-foreground hover:text-foreground flex-shrink-0"><Bookmark size={15} /></button>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mt-2 italic font-['Lora']">"{s.excerpt}"</p>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-rose-500 transition-colors"><Heart size={12} /> {s.likes.toLocaleString()}</button>
+                    <button className="flex items-center gap-1 hover:text-foreground transition-colors"><MessageCircle size={12} /> {s.comments}</button>
+                    <button className="flex items-center gap-1 hover:text-foreground transition-colors"><Bookmark size={12} /> Save</button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── COURSES ──────────────────────────────────────────────────────────────────
+function CoursesPage({ onNav }: { onNav: (p: Page) => void }) {
+  const [activeLevel, setActiveLevel] = useState("all");
+  const tracks = [
+    {
+      level: "Beginner", icon: "🌱", color: "bg-green-50 border-green-200",
+      courses: [
+        { title: "Story Basics: From Idea to Draft", lessons: 10, duration: "3h 20m", students: 6420, progress: 40, image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=200&fit=crop" },
+        { title: "Grammar Essentials for Writers", lessons: 8, duration: "2h 40m", students: 4810, progress: 0, image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=200&fit=crop" },
+      ]
+    },
+    {
+      level: "Intermediate", icon: "✍️", color: "bg-amber-50 border-amber-200",
+      courses: [
+        { title: "Dialogue That Breathes", lessons: 6, duration: "2h 10m", students: 3110, progress: 0, image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=200&fit=crop" },
+        { title: "Character Arcs & Inner Journeys", lessons: 9, duration: "3h 05m", students: 2890, progress: 0, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop" },
+      ]
+    },
+    {
+      level: "Advanced", icon: "🌍", color: "bg-purple-50 border-purple-200",
+      courses: [
+        { title: "Building Fantasy Worlds", lessons: 12, duration: "5h 00m", students: 1980, progress: 0, image: "https://images.unsplash.com/photo-1518791841217-8f162f1912da?w=400&h=200&fit=crop" },
+        { title: "Sci-Fi Systems & Hard Rules", lessons: 10, duration: "4h 20m", students: 1450, progress: 0, image: "https://images.unsplash.com/photo-1446776858070-70c3d5ed6758?w=400&h=200&fit=crop" },
+      ]
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background pt-20">
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="font-['Playfair_Display'] text-4xl font-bold mb-2">Writing Academy</h1>
+          <p className="text-muted-foreground">Structured learning by craft, not length. Grow at your own pace.</p>
+        </div>
+
+        {/* Level filter */}
+        <div className="flex gap-2 mb-8">
+          {["all", "Beginner", "Intermediate", "Advanced"].map(l => (
+            <button
+              key={l}
+              onClick={() => setActiveLevel(l)}
+              className={`px-4 py-2 rounded-full text-sm capitalize transition-all ${
+                activeLevel === l ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+
+        {tracks.filter(t => activeLevel === "all" || t.level === activeLevel).map((track, ti) => (
+          <div key={ti} className="mb-10">
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium mb-5 ${track.color}`}>
+              <span>{track.icon}</span> {track.level} Path
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              {track.courses.map((c, ci) => (
+                <motion.div
+                  key={ci}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+                >
+                  <div className="h-40 bg-muted overflow-hidden">
+                    <img src={c.image} alt={c.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-['Playfair_Display'] font-semibold text-base mb-1 leading-tight">{c.title}</h3>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                      <span className="flex items-center gap-1"><Video size={11} /> {c.lessons} lessons</span>
+                      <span className="flex items-center gap-1"><Clock size={11} /> {c.duration}</span>
+                      <span className="flex items-center gap-1"><Users size={11} /> {c.students.toLocaleString()}</span>
+                    </div>
+                    {c.progress > 0 ? (
+                      <>
+                        <div className="w-full bg-muted rounded-full h-1.5 mb-1">
+                          <motion.div
+                            className="bg-accent h-1.5 rounded-full"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${c.progress}%` }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">{c.progress}% complete</span>
+                          <button className="text-foreground font-medium flex items-center gap-1">Continue <ArrowRight size={11} /></button>
+                        </div>
+                      </>
+                    ) : (
+                      <button className="w-full bg-secondary text-foreground py-2 rounded-xl text-sm font-medium hover:bg-accent/20 transition-colors flex items-center justify-center gap-2">
+                        <Play size={13} /> Start Course
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── COLLABORATION HUB ────────────────────────────────────────────────────────
+function CollabHub({ onNav }: { onNav: (p: Page) => void }) {
+  const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [chatMsg, setChatMsg] = useState("");
+  const [messages, setMessages] = useState([
+    { user: "Mira", color: "bg-amber-200", text: "Should we move the betrayal scene to chapter 4?", time: "2m ago" },
+    { user: "James", color: "bg-sky-200", text: "I think it works better in chapter 6 — builds more tension.", time: "1m ago" },
+    { user: "AI", color: "bg-[#A7D7A8]", text: "The current arc suggests a reveal at the 70% mark — Chapter 6 aligns well with that.", time: "just now" },
+  ]);
+
+  const rooms = [
+    { id: "r1", title: "The Last Kingdom Project", members: ["M", "J", "L"], status: "active", genre: "Fantasy", updated: "2 min ago" },
+    { id: "r2", title: "Neon Requiem (Collab)", members: ["A", "V"], status: "idle", genre: "Sci-Fi", updated: "3 hours ago" },
+    { id: "r3", title: "Echoes — Open Room", members: ["R", "T", "N", "K"], status: "active", genre: "Romance", updated: "Just now" },
+  ];
+
+  const statusColor: Record<string, string> = { active: "bg-green-400", idle: "bg-amber-400", draft: "bg-red-400" };
+
+  if (activeRoom) {
+    return (
+      <div className="h-screen bg-background flex flex-col pt-16 overflow-hidden">
+        {/* Collab top bar */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-border flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setActiveRoom(null)} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">← Rooms</button>
+            <span className="text-border">|</span>
+            <span className="font-['Playfair_Display'] font-semibold">The Last Kingdom Project</span>
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="w-2 h-2 bg-green-400 rounded-full" /> 3 online
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {["M", "J", "L"].map((u, i) => (
+              <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${["bg-amber-300", "bg-sky-300", "bg-rose-300"][i]}`}>{u}</div>
+            ))}
+            <button className="text-xs bg-accent text-accent-foreground px-3 py-1.5 rounded-full ml-2 flex items-center gap-1 hover:opacity-90">
+              <Plus size={12} /> Invite
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Story world panel */}
+          <div className="w-60 bg-card border-r border-border flex-shrink-0 overflow-y-auto hidden lg:block">
+            <div className="p-3 border-b border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Story World</p>
+            </div>
+            <div className="p-2 space-y-1.5">
+              {[
+                { type: "char", name: "Arin Solace", color: "bg-amber-100" },
+                { type: "char", name: "King Valdren", color: "bg-rose-100" },
+                { type: "loc", name: "The Sunken City", color: "bg-sky-100" },
+                { type: "plot", name: "The Oath is Broken", color: "bg-green-100" },
+                { type: "plot", name: "Final Confrontation", color: "bg-purple-100" },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-2 px-2.5 py-2 rounded-lg ${item.color} text-xs`}>
+                  <span>{item.type === "char" ? "👤" : item.type === "loc" ? "📍" : "📌"}</span>
+                  <span className="font-medium">{item.name}</span>
+                </div>
+              ))}
+              <button className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground hover:bg-muted transition-colors mt-2">
+                <Plus size={11} /> Add element
+              </button>
+            </div>
+          </div>
+
+          {/* Main canvas / writing area */}
+          <div className="flex-1 overflow-y-auto bg-[#FEFCF7] p-6">
+            <h3 className="font-['Playfair_Display'] font-bold text-xl mb-4 text-center text-foreground/40">Chapter 3 — The Oath</h3>
+
+            {/* Writing blocks */}
+            <div className="max-w-2xl mx-auto space-y-4">
+              {[
+                { author: "Mira", color: "border-l-amber-400", text: "The throne room smelled of burned incense and old promises. Arin knelt on the cold flagstone, aware that every eye in the hall was weighing her worth against the price of the kingdom.", cursor: false },
+                { author: "James", color: "border-l-sky-400", text: '"You swear this?" King Valdren\'s voice was quiet. The kind of quiet that precedes avalanches.\n\n"I swear it," Arin said. She did not look up.', cursor: false },
+                { author: "You", color: "border-l-green-400", text: "She would spend the next ten years learning the shape of that lie.", cursor: true },
+              ].map((block, i) => (
+                <div key={i} className={`bg-card border-l-4 ${block.color} rounded-r-xl p-4 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-semibold ${
+                      block.author === "Mira" ? "bg-amber-200" : block.author === "James" ? "bg-sky-200" : "bg-green-200"
+                    }`}>
+                      {block.author[0]}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{block.author}</span>
+                    {block.cursor && <span className="ml-auto text-xs text-green-500 flex items-center gap-1"><span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> editing</span>}
+                  </div>
+                  <p className="font-['Lora'] text-sm leading-relaxed whitespace-pre-line">{block.text}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                    <button className="hover:text-foreground flex items-center gap-1"><ThumbsUp size={11} /> Approve</button>
+                    <button className="hover:text-foreground flex items-center gap-1"><MessageCircle size={11} /> Comment</button>
+                    <button className="hover:text-foreground flex items-center gap-1"><Sparkles size={11} /> AI improve</button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Vote panel */}
+              <div className="bg-secondary/60 border border-border rounded-2xl p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">🗳️ Story Decision</p>
+                <p className="text-sm font-medium mb-3">Should Arin reveal the lie to King Valdren in Chapter 4?</p>
+                <div className="space-y-2">
+                  {[{ label: "Yes — escalate now", votes: 2, pct: 67 }, { label: "No — save it for the finale", votes: 1, pct: 33 }].map((opt, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden relative">
+                        <motion.div
+                          className={`h-full ${i === 0 ? "bg-[#A7D7A8]" : "bg-accent/60"} rounded-full`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${opt.pct}%` }}
+                          transition={{ duration: 0.8 }}
+                        />
+                        <span className="absolute inset-0 flex items-center px-3 text-xs font-medium">{opt.label}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground w-12 text-right">{opt.votes} votes</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="mt-3 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">Cast your vote <ChevronRight size={11} /></button>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat panel */}
+          <div className="w-64 bg-card border-l border-border flex flex-col hidden lg:flex">
+            <div className="p-3 border-b border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Room Chat</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.map((m, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold ${m.color}`}>{m.user[0]}</div>
+                  <div>
+                    <p className="text-xs font-semibold">{m.user} <span className="font-normal text-muted-foreground">{m.time}</span></p>
+                    <p className="text-xs text-foreground/80 mt-0.5 leading-snug">{m.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 border-t border-border flex gap-2">
+              <input
+                value={chatMsg}
+                onChange={e => setChatMsg(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && chatMsg.trim()) {
+                    setMessages(prev => [...prev, { user: "You", color: "bg-green-200", text: chatMsg, time: "just now" }]);
+                    setChatMsg("");
+                  }
+                }}
+                className="flex-1 bg-input-background border border-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Message..."
+              />
+              <button className="bg-primary text-primary-foreground p-1.5 rounded-lg hover:opacity-90"><ArrowRight size={13} /></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pt-20">
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h1 className="font-['Playfair_Display'] text-4xl font-bold mb-1">Collaboration</h1>
+            <p className="text-muted-foreground text-sm">Co-write stories with other writers in real time.</p>
+          </div>
+          <button className="bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 hover:opacity-90">
+            <Plus size={16} /> Create Room
+          </button>
+        </div>
+
+        <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">Active Rooms</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+          {rooms.map(r => (
+            <motion.div
+              key={r.id}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+              onClick={() => setActiveRoom(r.id)}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className={`flex items-center gap-1.5 text-xs ${r.status === "active" ? "text-green-600" : "text-amber-600"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusColor[r.status]}`} />
+                  {r.status}
+                </span>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{r.genre}</span>
+              </div>
+              <h3 className="font-['Playfair_Display'] font-semibold text-base mb-2">{r.title}</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex -space-x-1">
+                  {r.members.map((m, i) => (
+                    <div key={i} className={`w-6 h-6 rounded-full border-2 border-card flex items-center justify-center text-xs font-semibold ${["bg-amber-200", "bg-sky-200", "bg-rose-200", "bg-green-200"][i % 4]}`}>{m}</div>
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground">{r.updated}</span>
+              </div>
+              <button className="w-full mt-4 py-2 bg-secondary rounded-xl text-sm font-medium hover:bg-accent/20 transition-colors">
+                Enter Room →
+              </button>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Invites */}
+        <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">Invitations</h2>
+        <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between py-3">
+            <div>
+              <p className="font-medium text-sm">Neha Patel invited you to <span className="font-['Playfair_Display']">Cassidy Blue — Sequel</span></p>
+              <p className="text-xs text-muted-foreground">Romance · 2 members · 3h ago</p>
+            </div>
+            <div className="flex gap-2">
+              <button className="flex items-center gap-1 bg-[#A7D7A8]/30 text-foreground px-3 py-1.5 rounded-lg text-xs hover:bg-[#A7D7A8]/50 transition-colors"><Check size={12} /> Accept</button>
+              <button className="flex items-center gap-1 bg-muted text-muted-foreground px-3 py-1.5 rounded-lg text-xs hover:bg-border transition-colors"><X size={12} /> Decline</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function ProfilePage({ onNav }: { onNav: (p: Page) => void }) {
+  const [activeTab, setActiveTab] = useState("stories");
+  const stories = [
+    { title: "The Hollow Crown", reads: 18420, likes: 3840, cover: "bg-amber-200" },
+    { title: "Echoes of Aelindra", reads: 6800, likes: 1230, cover: "bg-sky-200" },
+    { title: "The Paper Witch", reads: 31000, likes: 8920, cover: "bg-rose-200" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background pt-20">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        {/* Profile header */}
+        <div className="flex items-start gap-5 mb-8">
+          <div className="w-20 h-20 rounded-full bg-accent/40 flex items-center justify-center text-3xl font-['Playfair_Display'] font-bold border-2 border-accent">
+            A
+          </div>
+          <div className="flex-1">
+            <h1 className="font-['Playfair_Display'] text-2xl font-bold">Amara Kibowen</h1>
+            <p className="text-muted-foreground text-sm">@amara_writes · Fantasy & Historical Fiction</p>
+            <p className="text-sm mt-2 leading-relaxed">Building worlds one word at a time. Obsessed with morally grey protagonists and impossible choices.</p>
+            <div className="flex gap-5 mt-3 text-sm">
+              <span><strong>3</strong> <span className="text-muted-foreground">stories</span></span>
+              <span><strong>284</strong> <span className="text-muted-foreground">followers</span></span>
+              <span><strong>127</strong> <span className="text-muted-foreground">following</span></span>
+            </div>
+          </div>
+          <button className="px-4 py-2 rounded-full border border-border text-sm hover:bg-muted transition-colors flex items-center gap-1.5">
+            <Settings size={13} /> Edit
+          </button>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-3 mb-8">
+          {[
+            { label: "Total reads", value: "56,220" },
+            { label: "Total likes", value: "13,990" },
+            { label: "Writing streak", value: "12 days" },
+            { label: "Courses done", value: "2 / 6" },
+          ].map((s, i) => (
+            <div key={i} className="bg-card border border-border/50 rounded-xl p-3 text-center shadow-sm">
+              <p className="font-['Playfair_Display'] font-bold text-xl">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-border">
+          {["stories", "reading list", "activity"].map(t => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`px-4 py-2.5 text-sm capitalize font-medium transition-all border-b-2 -mb-px ${
+                activeTab === t ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "stories" && (
+          <div className="grid gap-4">
+            {stories.map((s, i) => (
+              <div key={i} onClick={() => onNav("editor")} className="bg-card border border-border/50 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
+                <div className={`w-12 h-16 rounded-lg ${s.cover} flex items-center justify-center text-xl flex-shrink-0`}>📔</div>
+                <div className="flex-1">
+                  <p className="font-['Playfair_Display'] font-semibold">{s.title}</p>
+                  <div className="flex gap-4 text-xs text-muted-foreground mt-1">
+                    <span className="flex items-center gap-1"><Eye size={11} /> {s.reads.toLocaleString()}</span>
+                    <span className="flex items-center gap-1"><Heart size={11} /> {s.likes.toLocaleString()}</span>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="text-muted-foreground" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState<Page>("landing");
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  const handleNav = (p: Page) => {
+    if ((p === "dashboard" || p === "editor" || p === "builder" || p === "collab") && !loggedIn) {
+      setPage("signup");
+      return;
+    }
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLogin = () => setLoggedIn(true);
+
+  const showNav = page !== "editor" && page !== "builder" && page !== "collab";
+
+  return (
+    <div className="min-h-screen bg-background">
+      {showNav && <TopNav current={page} onNav={handleNav} loggedIn={loggedIn} />}
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={page}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className="w-full"
+        >
+          {page === "landing" && <LandingPage onNav={handleNav} />}
+          {page === "signin" && <AuthPage mode="signin" onNav={handleNav} onLogin={handleLogin} />}
+          {page === "signup" && <AuthPage mode="signup" onNav={handleNav} onLogin={handleLogin} />}
+          {page === "dashboard" && <Dashboard onNav={handleNav} />}
+          {page === "editor" && <StoryEditor onNav={handleNav} />}
+          {page === "builder" && <StoryBuilder onNav={handleNav} />}
+          {page === "explore" && <ExplorePage onNav={handleNav} />}
+          {page === "courses" && <CoursesPage onNav={handleNav} />}
+          {page === "collab" && <CollabHub onNav={handleNav} />}
+          {page === "profile" && <ProfilePage onNav={handleNav} />}
+        </motion.div>
+      </AnimatePresence>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      `}</style>
+    </div>
+  );
+}

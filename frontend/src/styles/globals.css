@@ -1,0 +1,65 @@
+@keyframes leaf-editor-arrive {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The chapter studio remains calm, but its working surface and controls now arrive softly. */
+textarea[placeholder="Write your chapter…"],
+input[placeholder="Chapter title"] {
+  animation: leaf-editor-arrive 420ms ease-out both;
+}
+
+.leaf-rich-editor {
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.leaf-rich-editor:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 42px rgba(93, 73, 43, 0.10);
+}
+
+.leaf-rich-editor p.is-editor-empty:first-child::before {
+  content: "Write your chapter…";
+  color: hsl(var(--muted-foreground));
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.leaf-rich-editor h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin: 1.25rem 0 .65rem; }
+.leaf-rich-editor ul { list-style: disc; padding-left: 1.5rem; margin: .75rem 0; }
+.leaf-rich-editor ol { list-style: decimal; padding-left: 1.5rem; margin: .75rem 0; }
+.leaf-rich-editor blockquote { border-left: 3px solid hsl(var(--accent)); color: hsl(var(--muted-foreground)); padding-left: 1rem; margin: 1rem 0; font-style: italic; }
+
+/* Reader profile interactions: every control is pleasantly responsive without changing its layout. */
+.leaf-profile button,
+.leaf-profile label[for] {
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.leaf-profile button:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.leaf-profile button:not(:disabled):active {
+  transform: translateY(0) scale(.97);
+}
+
+.leaf-profile-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.leaf-profile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(93, 73, 43, .10);
+  border-color: hsl(var(--accent) / .35);
+}
+
+.leaf-profile div.bg-card.border {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.leaf-profile div.bg-card.border:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(93, 73, 43, .08);
+}

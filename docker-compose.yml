@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: leaf-postgres
+    environment:
+      POSTGRES_DB: leaf
+      POSTGRES_USER: leaf
+      POSTGRES_PASSWORD: leaf
+    ports:
+      - "5432:5432"
+    volumes:
+      - leaf-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leaf -d leaf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  leaf-postgres-data:
