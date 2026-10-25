@@ -19,3 +19,16 @@ def notify_story_followers(story, chapter, action):
             user_id=user_id, story_id=story.id, chapter_id=chapter.id,
             title=title, body=body, kind="chapter_update",
         ))
+
+
+def notify_moderation_event(user_id, title, body, story_id=None, chapter_id=None):
+    """Create a moderation notification for a user."""
+    db.session.add(Notification(
+        user_id=user_id,
+        story_id=story_id,
+        chapter_id=chapter_id,
+        title=title,
+        body=body,
+        kind="moderation",
+    ))
+

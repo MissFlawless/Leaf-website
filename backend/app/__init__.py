@@ -57,13 +57,16 @@ def create_app(config_object=Config):
     from app.routes.dashboard import bp as dashboard_bp
     from app.routes.notifications import bp as notifications_bp
     from app.routes.recommendations import bp as recommendations_bp
+    from app.routes.moderation import bp as moderation_bp
 
-    for bp in [auth_bp, meta_bp, stories_bp, chapters_bp, comments_bp, library_bp, notebooks_bp, dashboard_bp, notifications_bp, recommendations_bp]:
+    for bp in [auth_bp, meta_bp, stories_bp, chapters_bp, comments_bp, library_bp, notebooks_bp, dashboard_bp, notifications_bp, recommendations_bp, moderation_bp]:
         app.register_blueprint(bp, url_prefix="/api")
 
     from app.recommendations import initialize_recommendations
+    from app.moderation import initialize_moderation
     if not app.config.get("TESTING"):
         initialize_recommendations(app)
+        initialize_moderation(app)
 
     @app.cli.command("reindex_recommendations")
     def reindex_recommendations():

@@ -69,14 +69,39 @@ def create_chapter(story_id):
         return jsonify(error="Chapter title is required."), 400
     content = clean_html(data.get("content", ""))
     wc = word_count(content)
+    desired_status = data.get("status") if data.get("status") in {"draft", "published"} else "draft"
+    if desired_status == "published":
+        from app.moderation import get_moderation_service
+        from app.utils.notifications import notify_moderation_event
+        mod_result = get_moderation_service().agent.check_chapter(title=title, content=content)
+        if mod_result.is_flagged:
+            notify_moderation_event(
+                user_id=current_user.id,
+                story_id=story.id,
+                title="Chapter publication blocked",
+                body=f"Chapter '{title}' was blocked from publishing due to {', '.join(mod_result.categories) or 'inappropriate content'}: {mod_result.reason}",
+            )
+            db.session.commit()
+            return jsonify(
+                error=f"Chapter cannot be published: {mod_result.reason}",
+                moderation=mod_result.to_dict(),
+            ), 400
+        if mod_result.requires_review:
+            notify_moderation_event(
+                user_id=current_user.id,
+                story_id=story.id,
+                title="Chapter pending review",
+                body=f"Chapter '{title}' contains sensitive terms and is pending moderation review.",
+            )
+
     chapter = Chapter(
         story_id=story.id,
         title=title,
         content=content,
-        status=data.get("status") if data.get("status") in {"draft", "published"} else "draft",
+        status=desired_status,
         position=len(story.chapters) + 1,
         word_count=wc,
-        published_at=datetime.utcnow() if data.get("status") == "published" else None,
+        published_at=datetime.utcnow() if desired_status == "published" else None,
     )
     if chapter.status == "published":
         story.status = "published"
@@ -122,6 +147,35 @@ def update_chapter(chapter_id):
     data = request.get_json() or {}
     was_published = chapter.status == "published"
     had_edit = any(key in data for key in ("title", "content"))
+    will_be_published = data.get("status") == "published" or (chapter.status == "published" and data.get("status") != "draft")
+    if will_be_published and had_edit:
+        check_title = data.get("title", chapter.title).strip()
+        check_content = clean_html(data.get("content", chapter.content))
+        from app.moderation import get_moderation_service
+        from app.utils.notifications import notify_moderation_event
+        mod_result = get_moderation_service().agent.check_chapter(title=check_title, content=check_content)
+        if mod_result.is_flagged:
+            notify_moderation_event(
+                user_id=current_user.id,
+                story_id=chapter.story_id,
+                chapter_id=chapter.id,
+                title="Chapter publication blocked",
+                body=f"Chapter '{check_title}' was blocked from publishing due to {', '.join(mod_result.categories) or 'inappropriate content'}: {mod_result.reason}",
+            )
+            db.session.commit()
+            return jsonify(
+                error=f"Chapter cannot be published: {mod_result.reason}",
+                moderation=mod_result.to_dict(),
+            ), 400
+        if mod_result.requires_review:
+            notify_moderation_event(
+                user_id=current_user.id,
+                story_id=chapter.story_id,
+                chapter_id=chapter.id,
+                title="Chapter pending review",
+                body=f"Chapter '{check_title}' contains sensitive terms and is pending moderation review.",
+            )
+
     if data.get("title") is not None:
         title = data["title"].strip()
         if not title:
