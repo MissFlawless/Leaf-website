@@ -11,3 +11,5 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 *.pyc
 backend/instance/*.db
+.coverage
+htmlcov/

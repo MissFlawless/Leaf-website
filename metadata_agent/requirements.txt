@@ -1,0 +1,9 @@
+# Story Metadata Agent – dependencies
+# Install from the project root:
+#   pip install -r metadata_agent/requirements.txt
+#
+# httpx is already a dependency of recommendation_agent; listed here for
+# clarity so the module is independently installable.
+httpx>=0.27.0
+pytest>=8.0
+pytest-cov>=5.0
