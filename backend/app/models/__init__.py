@@ -188,3 +188,16 @@ class WritingLog(db.Model):
     log_date = db.Column(db.Date, default=date.today, nullable=False, index=True)
     words_added = db.Column(db.Integer, default=0, nullable=False)
     __table_args__ = (db.UniqueConstraint("user_id", "log_date", name="uq_writing_log_user_date"),)
+
+
+class ReadingSession(TimestampMixin, db.Model):
+    __tablename__ = "reading_sessions"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    story_id = db.Column(db.Integer, db.ForeignKey("stories.id", ondelete="CASCADE"), nullable=False, index=True)
+    chapter_id = db.Column(db.Integer, db.ForeignKey("chapters.id", ondelete="SET NULL"))
+    last_position = db.Column(db.Integer, default=0)
+
+    user = db.relationship("User")
+    story = db.relationship("Story")
+    chapter = db.relationship("Chapter")

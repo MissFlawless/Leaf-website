@@ -40,10 +40,58 @@ def create_comment(story, chapter_id=None):
         parent = Comment.query.get_or_404(parent_id)
         if parent.parent_id or parent.story_id != story.id:
             return jsonify(error="Invalid reply target."), 400
-    comment = Comment(body=body, story_id=story.id, chapter_id=chapter_id, user_id=current_user.id, parent_id=parent_id)
+
+    from app.moderation import get_moderation_service
+    from app.utils.notifications import notify_moderation_event
+
+    mod_result = get_moderation_service().agent.check_comment(body)
+    if mod_result.is_flagged:
+        notify_moderation_event(
+            user_id=current_user.id,
+            story_id=story.id,
+            chapter_id=chapter_id,
+            title="Comment flagged by moderation",
+            body=f"Your comment on '{story.title}' was flagged for {', '.join(mod_result.categories) or 'inappropriate content'}: {mod_result.reason}",
+        )
+        db.session.commit()
+        return jsonify(
+            error="Your comment was flagged by moderation and could not be posted.",
+            moderation=mod_result.to_dict(),
+        ), 400
+
+    comment = Comment(
+        body=body,
+        story_id=story.id,
+        chapter_id=chapter_id,
+        user_id=current_user.id,
+        parent_id=parent_id,
+        hidden=mod_result.requires_review,
+    )
     db.session.add(comment)
+
+    if mod_result.requires_review:
+        notify_moderation_event(
+            user_id=current_user.id,
+            story_id=story.id,
+            chapter_id=chapter_id,
+            title="Comment pending review",
+            body=f"Your comment on '{story.title}' contains sensitive terms and is pending review.",
+        )
+        if story.author_id != current_user.id:
+            notify_moderation_event(
+                user_id=story.author_id,
+                story_id=story.id,
+                chapter_id=chapter_id,
+                title="Comment requires review",
+                body=f"A new comment on '{story.title}' requires review: \"{body[:60]}...\"",
+            )
+
     db.session.commit()
-    return jsonify(comment=comment_json(comment, current_user)), 201
+    resp_data = {"comment": comment_json(comment, current_user)}
+    if mod_result.requires_review:
+        resp_data["message"] = "Your comment requires review before appearing publicly."
+        resp_data["moderation"] = mod_result.to_dict()
+    return jsonify(resp_data), 201
 
 
 @bp.post("/stories/<int:story_id>/comments")
@@ -76,7 +124,16 @@ def hide_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     if current_user.id != comment.story.author_id:
         return jsonify(error="Only the story author can hide comments."), 403
-    comment.hidden = bool((request.get_json() or {}).get("hidden", True))
+    new_hidden = bool((request.get_json() or {}).get("hidden", True))
+    comment.hidden = new_hidden
+    if not new_hidden and comment.user_id != current_user.id:
+        from app.utils.notifications import notify_moderation_event
+        notify_moderation_event(
+            user_id=comment.user_id,
+            story_id=comment.story_id,
+            title="Comment approved",
+            body=f"Your comment on '{comment.story.title}' was reviewed and approved by the author.",
+        )
     db.session.commit()
     return jsonify(comment=comment_json(comment, current_user))
 

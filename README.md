@@ -111,3 +111,9 @@ if it shows a white page paste this in the terminal in the frontend folder :
 Get-CimInstance Win32_Process |                                     
 >>   Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -match 'vite' } |
 >>   ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+
+## Reader return recaps
+
+Leaf saves the latest chapter a signed-in reader reaches in each story. If the reader returns after the configured inactivity interval, the recap endpoint retrieves up to the three latest published chapters through that point and produces a short recap grounded in those excerpts. Set `GEMINI_API_KEY` in `backend/.env` to enable Gemini generation; without it or if the provider fails, Leaf uses a local extractive recap. Keep the key in the backend environment only.
+
+The current Gemini model is configured by `GEMINI_MODEL` (default `gemini-3.8-flash`). The 3-second inactivity interval is for local testing; increase the `threshold_seconds` default in `backend/app/utils/recap_service.py` before deploying.

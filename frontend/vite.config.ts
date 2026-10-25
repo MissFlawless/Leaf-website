@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite'
-import path from 'path'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+
+const configDir = dirname(fileURLToPath(import.meta.url))
 
 
 function leafBackendBridge() {
@@ -11,9 +14,15 @@ function leafBackendBridge() {
     name: 'leaf-backend-bridge',
     apply: 'serve',
     configureServer(server) {
-      const backendDir = path.resolve(__dirname, '../backend')
-      const virtualenvPython = path.join(backendDir, '.venv', 'Scripts', 'python.exe')
-      const python = existsSync(virtualenvPython) ? virtualenvPython : 'python'
+      const backendDir = path.resolve(configDir, '../backend')
+      const pythonCandidates = [
+        path.join(backendDir, '.venv', 'Scripts', 'python.exe'),
+        path.join(backendDir, 'venv', 'Scripts', 'python.exe'),
+      ].filter(existsSync)
+      const python = pythonCandidates.find((candidate) => {
+        const check = spawnSync(candidate, ['-c', 'import flask, flask_sqlalchemy, flask_jwt_extended, flask_migrate, requests'], { cwd: backendDir, windowsHide: true })
+        return !check.error && check.status === 0
+      }) || 'python'
       const migration = spawnSync(python, ['-m', 'flask', 'db', 'upgrade'], {
         cwd: backendDir,
         env: { ...process.env, FLASK_APP: 'run.py', FLASK_DEBUG: '0' },
@@ -64,7 +73,7 @@ function figmaAssetResolver() {
     resolveId(id) {
       if (id.startsWith('figma:asset/')) {
         const filename = id.replace('figma:asset/', '')
-        return path.resolve(__dirname, 'src/assets', filename)
+        return path.resolve(configDir, 'src/assets', filename)
       }
     },
   }
@@ -82,7 +91,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Alias @ to the src directory
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(configDir, './src'),
     },
   },
 
