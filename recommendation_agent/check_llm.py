@@ -72,7 +72,7 @@ def main() -> None:
     if not model:
         _list_models(base_url, api_key)
         return
-    generator = WhyLineGenerator(api_provider=ApiProvider(), local_enabled=False)
+    generator = WhyLineGenerator(api_provider=ApiProvider())
     started = time.perf_counter()
     why, source = generator.generate_with_source(
         "science fiction", 0, "smoke", "candidate: title=Example; genres=Science Fiction; tags=#space; synopsis=A public space adventure.", "A public space adventure may fit your search."
