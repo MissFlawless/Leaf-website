@@ -7,6 +7,8 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-change-me")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-change-me")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///leaf.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     _upload_setting = Path(os.getenv("UPLOAD_FOLDER", "uploads"))

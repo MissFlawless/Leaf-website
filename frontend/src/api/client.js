@@ -20,7 +20,8 @@ const useRuntimeApiBase = typeof window !== "undefined"
   && configuredApiBase
   && localApiHosts.has(configuredApiHost)
   && !localApiHosts.has(window.location.hostname);
-const useViteProxy = import.meta.env.DEV && (!configuredApiBase || localApiHosts.has(configuredApiHost));
+// Local development always goes through this checkout's Vite bridge so it uses its backend code.
+const useViteProxy = import.meta.env.DEV;
 export const API_BASE = (useViteProxy ? "" : useRuntimeApiBase ? runtimeApiBase : normalizedConfiguredApiBase || runtimeApiBase).replace(/\/+$/, "");
 
 const api = axios.create({

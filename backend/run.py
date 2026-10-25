@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parents[1] / ".env", override=False)
+project_root = Path(__file__).resolve().parents[1]
+load_dotenv(project_root / ".env", override=False)
+load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
 
 from app import create_app
 

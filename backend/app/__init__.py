@@ -58,9 +58,11 @@ def create_app(config_object=Config):
     from app.routes.notifications import bp as notifications_bp
     from app.routes.recommendations import bp as recommendations_bp
     from app.routes.moderation import bp as moderation_bp
+    from app.routes.recap import recap_bp
 
     for bp in [auth_bp, meta_bp, stories_bp, chapters_bp, comments_bp, library_bp, notebooks_bp, dashboard_bp, notifications_bp, recommendations_bp, moderation_bp]:
         app.register_blueprint(bp, url_prefix="/api")
+    app.register_blueprint(recap_bp, url_prefix="/api/recap")
 
     from app.recommendations import initialize_recommendations
     from app.moderation import initialize_moderation
