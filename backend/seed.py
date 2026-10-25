@@ -9,7 +9,7 @@ WARNINGS = ["Violence", "Grief", "Strong language", "Mature themes", "Death", "S
 
 
 def user(email, username, role, display_name):
-    existing = User.query.filter_by(email=email).first()
+    existing = User.query.filter((User.email == email) | (User.username == username)).first()
     if existing:
         return existing
     u = User(email=email, username=username, role=role, display_name=display_name, bio=f"{display_name} writes and reads on Leaf.")
@@ -78,6 +78,42 @@ def seed_demo():
         db.session.commit()
 
 
+def seed_recommendation_catalog():
+    """Create an idempotent catalog with clear recommendation neighborhoods."""
+    author = user("missflawless@leaf.test", "missflawless", "author", "MissFlawless")
+    db.session.commit()
+    genres = {genre.name: genre for genre in Genre.query.all()}
+    catalog = [
+        # These five should be strongly related to a Briar House search.
+        ("The Briar House Correspondence", "An archivist catalogues letters from a ruined manor that answer questions before anyone asks them.", "Historical", ["historical", "serial", "gothic", "epistolary", "archive", "family-secret"]),
+        ("Ashes at Wren Hall", "A young historian restores a fire-damaged estate archive and uncovers a century of hidden family letters.", "Historical", ["historical", "serial", "gothic", "epistolary", "archive", "family-secret"]),
+        ("The Inkkeeper's Promise", "In 1890, a reluctant curator follows an unsigned correspondence through a crumbling country house.", "Historical", ["historical", "serial", "gothic", "epistolary", "archive", "manor"]),
+        ("The Last Room at Hawthorn Manor", "A housemaid finds a locked library where every old letter reveals another branch of a vanished family.", "Historical", ["historical", "serial", "gothic", "family-secret", "manor", "mystery"]),
+        ("A Catalogue of Lost Names", "A quiet librarian reconstructs a forgotten woman's life from diaries, catalog cards, and sealed post.", "Historical", ["historical", "serial", "epistolary", "archive", "literary", "mystery"]),
+        # Deliberately unrelated controls make relevance testing easier.
+        ("Neon Tide Protocol", "A deep-sea engineer races to stop an autonomous city from flooding the last coastal refuge on Earth.", "Science Fiction", ["cyberpunk", "ocean", "technology", "thriller"]),
+        ("The Ember Crown", "A disgraced dragon rider must choose between restoring a stolen crown and saving the village that exiled her.", "Fantasy", ["dragons", "magic", "quest", "war"]),
+        ("Sunday at Mango Street", "A Nigerian chef opens a tiny neighborhood restaurant and learns that second chances arrive one table at a time.", "Contemporary", ["food", "community", "healing", "slice-of-life"]),
+        ("The Alpine Witness", "A forensic climber investigates a death on an isolated mountain trail before the next storm buries the evidence.", "Mystery", ["detective", "mountains", "suspense", "crime"]),
+        ("Orbiting June", "Two astronauts on separate missions exchange voice notes while deciding whether a long-distance love can survive space.", "Romance", ["space", "love", "letters", "hope"]),
+    ]
+    for title, blurb, genre_name, tags in catalog:
+        story = Story.query.filter_by(title=title, author_id=author.id).first()
+        if story:
+            continue
+        story = Story(title=title, blurb=blurb, status="published", mature=False, author=author)
+        story.genres = [genres[genre_name]]
+        story.tags = [tag(name) for name in tags]
+        db.session.add(story)
+        db.session.flush()
+        db.session.add(Chapter(
+            story_id=story.id, title="Chapter 1", position=1, status="published", word_count=60,
+            published_at=datetime.utcnow(),
+            content=f"<p>{blurb} The opening chapter introduces a choice that changes everything.</p>",
+        ))
+    db.session.commit()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-demo", action="store_true")
@@ -87,6 +123,7 @@ def main():
         seed_taxonomy()
         if not args.no_demo:
             seed_demo()
+        seed_recommendation_catalog()
         print("Seed complete.")
 
 

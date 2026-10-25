@@ -17,6 +17,7 @@ class RankingConfig:
     genre_weight: float = float(os.getenv("RECOMMENDATION_GENRE_WEIGHT", "0.25"))
     tag_weight: float = float(os.getenv("RECOMMENDATION_TAG_WEIGHT", "0.15"))
     min_score: float = float(os.getenv("RECOMMENDATION_MIN_SCORE", "0.0"))
+    max_recommendations_per_author: int = int(os.getenv("RECOMMENDATION_MAX_PER_AUTHOR", "5"))
     embedding_model: str = os.getenv("RECOMMENDATION_EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
     llm_model: str = os.getenv("RECOMMENDATION_LLM_MODEL", "")
     llm_provider: str = os.getenv("RECOMMENDATION_LLM_PROVIDER", "")

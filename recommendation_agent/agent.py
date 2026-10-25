@@ -77,7 +77,7 @@ class RecommendationAgent:
             if score >= self.config.min_score: rows.append(Recommendation(story, score, sg, st, reason(sg, st)))
         selected, per_author = [], {}
         for item in sorted(rows, key=lambda r: (r.score, r.story.popularity), reverse=True):
-            if per_author.get(item.story.author_id, 0) < 2:
+            if per_author.get(item.story.author_id, 0) < self.config.max_recommendations_per_author:
                 selected.append(item); per_author[item.story.author_id] = per_author.get(item.story.author_id, 0)+1
             if len(selected) >= k: break
         return selected

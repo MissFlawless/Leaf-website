@@ -1,0 +1,26 @@
+id,title,synopsis,genres,tags,status,author_id,author_name,popularity
+1,The Dragon Archive,A librarian wakes ancient dragons.,Fantasy|Adventure,dragons|magic,published,1,Ada,88
+2,Embers of the Crown,A rebel and dragon guard a fallen kingdom.,Fantasy|Adventure,dragons|rebellion,published,2,Bo,76
+3,Les étoiles perdues,Une astronome cherche sa soeur parmi les étoiles.,Science Fiction|Mystery,espace|famille,published,3,Chloé,60
+4,Midnight Orchard,A witch tends a haunted orchard.,Fantasy|Romance,witches|cozy,published,1,Ada,44
+5,The Last Station,A detective investigates a silent train.,Mystery|Thriller,detective|train,published,4,Dee,51
+6,Draft Moon,Unpublished sample.,Fantasy,moon,draft,5,Eli,1
+7,Clockwork Harbour,A mechanic discovers a city beneath the sea.,Science Fiction|Adventure,steampunk|ocean,published,6,Finn,43
+8,Le jardin des ombres,Une botaniste parle aux fleurs dangereuses.,Fantasy|Mystery,plantes|magie,published,7,Gaëlle,57
+9,Ash and Oath,A knight breaks an ancient promise.,Fantasy|Romance,knights|curse,published,8,Hana,69
+10,Signal at Dawn,Two pilots answer a message from Mars.,Science Fiction|Romance,mars|pilots,published,9,Ivan,35
+11,Paper Moons,A bookseller maps dreams in old letters.,Magical Realism|Romance,books|dreams,published,10,Jules,48
+12,La maison qui marche,Une famille fuit dans une maison vivante.,Fantasy|Family,maison|aventure,published,11,Kenza,54
+13,Winter Witness,A journalist follows a cold-case trail.,Mystery|Thriller,journalist|cold-case,published,12,Luca,67
+14,The Glass Heir,A princess learns to command mirrors.,Fantasy|Young Adult,royalty|magic,published,13,Mira,72
+15,Deepwater Choir,Singers awaken something in a drowned chapel.,Horror|Fantasy,ocean|ghosts,published,14,Nia,41
+16,Un café sur la lune,Deux inconnus se retrouvent chaque nuit.,Romance|Science Fiction,lune|cafe,published,15,Omar,38
+17,The Map of Crows,Children follow birds through a war-torn city.,Historical|Adventure,crows|found-family,published,16,Pia,61
+18,Velvet Algorithm,An AI curates emotions for the wealthy.,Science Fiction|Thriller,ai|dystopia,published,17,Quin,74
+19,La reine des braises,Une reine exilee revient avec un dragon.,Fantasy|Adventure,dragons|rebellion,published,18,Rania,83
+20,The Quiet Archive,An archivist hides forbidden memories.,Mystery|Fantasy,archive|secrets,published,19,Sol,52
+21,Orchid Protocol,A doctor investigates engineered flowers.,Thriller|Science Fiction,plants|conspiracy,published,20,Tess,46
+22,La ville sans sommeil,Des musiciens protegent une ville insomniaque.,Urban Fantasy|Romance,musique|nuit,published,21,Uma,58
+23,Starless Sea,A sailor bargains with a sea dragon.,Fantasy|Adventure,dragons|ocean,published,22,Val,79
+24,The Second Chapter,A writer enters her unfinished novel.,Magical Realism|Mystery,writing|meta,published,23,Wren,37
+25,Nocturne de verre,Un violoniste chasse les fantomes du metro.,Urban Fantasy|Mystery,musique|ghosts,published,24,Xavi,50
